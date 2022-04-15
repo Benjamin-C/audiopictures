@@ -7,6 +7,7 @@ print("Hello")
 # from scipy.io import wavfile
 # from scipy.fft import fftshift
 # from scipy import signal
+from scipy.io.wavfile import write
 
 # Plotting libraries
 import matplotlib.pyplot as plt
@@ -17,7 +18,7 @@ from tqdm import tqdm
 import threading
 import time
 
-from curses import wrapper
+import curses
 
 # importing OpenCV(cv2) module
 # You may need to run `pip install opencv-python`
@@ -25,11 +26,25 @@ import cv2
 
 import testgui
 
+from os.path import exists
+
 waveLock = threading.Lock()
 waves = []
 
 doneLock = threading.Lock()
 done = 0;
+
+# Plotting constants
+VERT_RES = 64 # Image height in px
+MINFREQ = 1000 # The frequency for the bottom of the image
+MAXFREQ = 10000 # The frequency for the top of the image
+USE_LOG = False # Use a log scale for frequency
+PX_DURATION = 100 # Make each pixel 100ms long
+SAMPLE_RATE = 44100 # How many samples per second
+MAX_AMPL = 1 # Maximum amplitude if brightness is 255
+WORKER_THREADS = 32 # Number of worker threads
+
+abc = 2
 
 def main(stdscr):
     global done
@@ -41,30 +56,142 @@ def main(stdscr):
             stdscr.addstr(x, y, str)
             stdscr.refresh()
 
-    # Plotting constants
-    VERT_RES = 64 # Image height in px
-    MINFREQ = 1000 # The frequency for the bottom of the image
-    MAXFREQ = 10e3 # The frequency for the top of the image
-    USE_LOG = False # Use a log scale for frequency
-    PX_DURATION = 100 # Make each pixel 100ms long
-    SAMPLE_RATE = 44100 # How many samples per second
-    MAX_AMPL = 1 # Maximum amplitude if brightness is 255
-    WORKER_THREADS = 32
+    def move(pos, max, dir):
+        if 0 <= pos + dir < max:
+            return pos + dir
+        return pos
 
-    # Load the audio file
-    # print("Loading ...")
-    # samplerate, adata = wavfile.read('../testsong.wav')
-    #
-    # print(f"number of channels = {adata.shape[1]}")
-    #
-    # length = adata.shape[0] / samplerate
-    # print(f"length = {length}s")
+    global VERT_RES, MINFREQ, MAXFREQ, USE_LOG, PX_DURATION, SAMPLE_RATE, WORKER_THREADS
 
-    # Python program to read image using OpenCV
+    inSettings = False;
 
-    # Save image in set directory
-    # Read RGB image
-    img = cv2.imread('tux.png', -1)
+    # Ask the user to give a filename
+    addstr(0,0,"Image file to convert:")
+    stdscr.move(1, 0)
+    filepath = ""
+    pathValid = False
+
+    # Set up settings
+    settingNum = 0;
+    posy = 0;
+
+    lablestr = [f"Vertical Resolution [px ]",
+                f"Minimum frequency   [Hz ]",
+                f"Maximum frequency   [Kz ]",
+                f"Use log frequencies [T/F]",
+                f"Pixel duration      [ms ]",
+                f"Sample rate         [Hz ]",
+                f"Worker threads      [num]"]
+    valtype = [int, int, int, bool, int, int, int]
+    q = abc + 1
+    valstr = [VERT_RES, MINFREQ, MAXFREQ, USE_LOG, PX_DURATION, SAMPLE_RATE, WORKER_THREADS]
+
+    settingsY = 4
+    settingsX = 31
+    afterSettingsY = 4
+
+    addstr(settingsY-1,0,f"Settings:") # Image height in px
+    for i in range(len(lablestr)):
+        addstr(i+settingsY,0,f" {i}. {lablestr[i]} - {str(valstr[i])}") # Image height in px
+        settingNum = i
+    afterSettingsY = settingNum+settingsY+1
+    stdscr.move(settingNum+settingsY, settingsX+len(str(valstr[settingNum])))
+
+    addstr(afterSettingsY+1, 0, "Your file will be stored as .wav")
+    addstr(afterSettingsY+3, 0, "Press ENTER to convert image")
+
+    settingNum = 0;
+
+    addstr(1,0,f"{filepath} .png")
+    stdscr.move(1, len(filepath))
+
+    # Respond to keypresses
+    while not pathValid:
+        # Get the key
+        key = stdscr.getch()
+        # Try to load the file if the key is enter
+        if key == curses.KEY_ENTER or key == 10 or key == 13:
+            addstr(2,0,f"Loading {filepath}.png ...")
+            settingsOK = True
+            for i in range(len(lablestr)):
+                if not (type(valstr[i]) is valtype[i]):
+                    settingsOK = False
+                    errno = i
+            if exists(filepath + ".png") and settingsOK:
+                stdscr.move(2, 0)
+                stdscr.clrtoeol()
+                addstr(2,0,f"It works! ...")
+                pathValid = True
+            else:
+                if settingsOK:
+                    addstr(2,0,f"{filepath}.png does not exist. Please try again.")
+                else:
+                    addstr(2,0,f"Settings error, please try again. Error on line {errno}")
+                stdscr.move(1, 0)
+                curses.curs_set(0)
+        # If we are in the settings menu ...
+        elif inSettings:
+            stdscr.move(settingNum+settingsY, settingsX+len(str(valstr[settingNum])))
+            if key == curses.KEY_UP:
+                if settingNum == 0:
+                    inSettings = False;
+                    stdscr.move(1, len(filepath))
+                else:
+                    settingNum = move(settingNum, len(lablestr), -1)
+            elif key == curses.KEY_DOWN:
+                settingNum = move(settingNum, len(lablestr),  1)
+            elif key == 27:
+                break;
+            else:
+                if valtype[settingNum] is int:
+                    if key == curses.KEY_BACKSPACE or key == 127:
+                        ist = str(valstr[settingNum])[0:-1]
+                        if len(ist) > 0:
+                            valstr[settingNum] = int(ist)
+                        else:
+                            valstr[settingNum] = ''
+                    else:
+                        if '0' <= chr(key) <= '9':
+                            valstr[settingNum] = int(str(valstr[settingNum]) + chr(key))
+                elif valtype[settingNum] is bool:
+                    if chr(key) in "0fF":
+                        valstr[settingNum] = False
+                    elif chr(key) in "1tT":
+                        valstr[settingNum] = True
+                else:
+                    if key == curses.KEY_BACKSPACE or key == 127:
+                        valstr[settingNum] = valstr[settingNum][0:-1]
+                    else:
+                        if ' ' <= chr(key) <= '~':
+                            valstr[settingNum] += chr(key)
+                stdscr.move(settingNum+settingsY, settingsX+len(str(valstr[settingNum])))
+                stdscr.clrtoeol()
+                addstr(settingNum+settingsY,0,f" {lablestr[settingNum]} - {str(valstr[settingNum])}") # Image height in px
+            stdscr.move(settingNum+settingsY, settingsX+len(str(valstr[settingNum])))
+        # If we are typing the file name ...
+        else:
+            curses.curs_set(1)
+            if key == curses.KEY_DOWN:
+                inSettings = True;
+                settingNum = 0
+                stdscr.move(settingNum+settingsY, settingsX+len(str(valstr[settingNum])))
+            else:
+                if key == curses.KEY_BACKSPACE or key == 127:
+                    filepath = filepath[0:-1]
+                elif chr(key) in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_ ./":
+                    filepath += chr(key)
+                stdscr.move(2, 0)
+                stdscr.clrtoeol()
+                stdscr.move(afterSettingsY+1, 0)
+                stdscr.clrtoeol()
+                addstr(afterSettingsY+1, 0, f"Your file will be stored as {filepath}.wav")
+                stdscr.move(1, 0)
+                stdscr.clrtoeol()
+                addstr(1,0,f"{filepath} .png")
+                stdscr.move(1, len(filepath))
+                stdscr.refresh()
+
+    img = cv2.imread(filepath + '.png', -1)
 
     width = int((VERT_RES / len(img)) * len(img[0]))
     height = VERT_RES
@@ -203,6 +330,8 @@ def main(stdscr):
     # plt.ylabel('Frequency [Hz]')
     # plt.xlabel('Time [sec]')
 
+    scaled = np.int16(data/np.max(np.abs(data)) * 32767)
+    write(filepath + '.wav', 44100, scaled)
 
     # Output img with window name as 'image'
     cv2.imshow('image', cv2.resize(gray2, (512, 512), interpolation= cv2.INTER_NEAREST))
@@ -220,4 +349,4 @@ def main(stdscr):
 
     print("Plotting ...")
 
-wrapper(main)
+curses.wrapper(main)
