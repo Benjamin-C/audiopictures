@@ -23,6 +23,8 @@ from curses import wrapper
 # You may need to run `pip install opencv-python`
 import cv2
 
+import testgui
+
 waveLock = threading.Lock()
 waves = []
 
@@ -40,15 +42,14 @@ def main(stdscr):
             stdscr.refresh()
 
     # Plotting constants
-    VERT_RES = 24 # Image height in px
+    VERT_RES = 64 # Image height in px
     MINFREQ = 1000 # The frequency for the bottom of the image
     MAXFREQ = 10e3 # The frequency for the top of the image
-    USE_LOG = True # Use a log scale for frequency
+    USE_LOG = False # Use a log scale for frequency
     PX_DURATION = 100 # Make each pixel 100ms long
     SAMPLE_RATE = 44100 # How many samples per second
     MAX_AMPL = 1 # Maximum amplitude if brightness is 255
     WORKER_THREADS = 32
-    ASCIIART = True
 
     # Load the audio file
     # print("Loading ...")
@@ -85,9 +86,11 @@ def main(stdscr):
     addstr(0, 0, "Generating ...        ")
     freqs = []
 
-    samplecount = int(SAMPLE_RATE / (PX_DURATION/1000))
+    samplecount = int(SAMPLE_RATE * (PX_DURATION/1000))
 
     times = np.linspace(0, PX_DURATION/1000, samplecount)
+
+    zro = np.zeros(samplecount)
 
     if USE_LOG:
         minlog = np.log10(MINFREQ)
@@ -97,6 +100,11 @@ def main(stdscr):
     else:
         freqs = np.linspace(MINFREQ, MAXFREQ, VERT_RES, False)
 
+    waves = []
+
+    for f in freqs:
+        waves.append(np.sin(2 * np.pi * f * times))
+
     def setRowCh(y, ch):
         with scrLock:
             stdscr.addch((y // WORKER_THREADS) + 1, (y % WORKER_THREADS) + 1, ch)
@@ -105,21 +113,6 @@ def main(stdscr):
     for y in range(height):
         waves.append([])
 
-    def calcRow(y, tq):
-        # print(f"Worker {y} started")
-        rg = range(width);
-        if tq:
-            rg = range(width)
-        for x in rg:
-            frequency = freqs[VERT_RES - y - 1]
-            amplitude = (img_data[y][x] / 255) # 255 is the max pixel value
-            sinewave = amplitude * np.sin(2 * np.pi * frequency * times)
-            with waveLock:
-                waves[y].append(sinewave)
-            time.sleep( 0.0001 ) # Yield to other processes to hopefully not lock the entire CPU
-
-        # print(f"Worker {y} finished")
-
     blockdata = []
 
     for i in range(width):
@@ -127,33 +120,26 @@ def main(stdscr):
 
     x = 0
 
+    print(times)
     sinewave = np.sin(2 * np.pi * MAXFREQ * times)
 
     rows, cols = stdscr.getmaxyx()
 
-    def asciiartChar(x, y, c):
-        with scrLock:
-            if x+3 < cols and y+3 < rows:
-                stdscr.addch(y+3, x+3, c)
-                stdscr.refresh()
-                pass
-
-    for x in range(height):
-        for y in range(width):
-            asciiartChar(x, y, '.')
+    # mw = testgui.MainWindow(width, height)
+    # mw.show()
 
     def calcCol(num, tq):
-        block = np.copy(sinewave)
+        block = np.copy(zro)
         for row in range(VERT_RES):
-            frequency = freqs[VERT_RES - row - 1]
-            amplitude = (img_data[row][num] / 255) # 255 is the max pixel value
-            # ASCII art version
-            if ASCIIART:
-                c = str(amplitude)
-                asciiartChar(num, row, c[2])
-            # end ASCII art version
-            thiswave = amplitude * np.sin(2 * np.pi * frequency * times)
-            # block += thiswave
+            frequency = VERT_RES - row - 1
+            dta = img_data[row][num]
+            amplitude = (dta / 255) # 255 is the max pixel value
+            thiswave = amplitude * waves[frequency]
+            block += thiswave
+
+            # mw.setBtnColor(row,num,dta)
+            # mw.setBtnInfo(row,num,dta,amplitude)
+
         blockdata[num] = block
 
     alldone = 0
@@ -194,7 +180,6 @@ def main(stdscr):
                 done = 0;
                 addstr(0, 0, "Starting ...        ")
 
-        addstr(15,0, str(alldone) + " " + str(max))
         while alldone < max:
             time.sleep(0.5)
 
@@ -206,19 +191,21 @@ def main(stdscr):
     for blocknum in range(width):
         data = np.append(data, blockdata[blocknum])
 
-    addstr(16,0, str(len(data)))
-
     addstr(0, 0, "Showing ...        ")
     # Plot only the left channel
     plt.specgram(data, Fs=SAMPLE_RATE)
-    # plt.plot(data[0:2000])
+    ax = plt.gca()
+    # ax.set_yscale('log')
+    ax.set_ylim([0, MAXFREQ])
+    # plt.specgram(sinewave, Fs=SAMPLE_RATE)
+    # plt.plot(data[0:20])
     # plt.plot(sinewave[0:200])
     # plt.ylabel('Frequency [Hz]')
     # plt.xlabel('Time [sec]')
 
 
     # Output img with window name as 'image'
-    cv2.imshow('image', cv2.resize(gray2, (512, 512)))
+    cv2.imshow('image', cv2.resize(gray2, (512, 512), interpolation= cv2.INTER_NEAREST))
 
     # QT_QPA_PLATFORM=wayland
     plt.show()
