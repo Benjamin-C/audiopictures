@@ -16,7 +16,7 @@ print(f"length = {length}s")
 
 print("Plotting ...")
 
-plt.specgram(data[:,0], samplerate)
+plt.specgram(data[:,0], Fs=samplerate)
 
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time [sec]')
