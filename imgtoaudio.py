@@ -40,14 +40,15 @@ def main(stdscr):
             stdscr.refresh()
 
     # Plotting constants
-    VERT_RES = 64 # Image height in px
-    MINFREQ = 100 # The frequency for the bottom of the image
+    VERT_RES = 24 # Image height in px
+    MINFREQ = 1000 # The frequency for the bottom of the image
     MAXFREQ = 10e3 # The frequency for the top of the image
     USE_LOG = True # Use a log scale for frequency
     PX_DURATION = 100 # Make each pixel 100ms long
     SAMPLE_RATE = 44100 # How many samples per second
     MAX_AMPL = 1 # Maximum amplitude if brightness is 255
-    WORKER_THREADS = 16
+    WORKER_THREADS = 32
+    ASCIIART = True
 
     # Load the audio file
     # print("Loading ...")
@@ -106,8 +107,6 @@ def main(stdscr):
 
     def calcRow(y, tq):
         # print(f"Worker {y} started")
-        setRowCh(y, '+')
-        global done
         rg = range(width);
         if tq:
             rg = range(width)
@@ -118,10 +117,44 @@ def main(stdscr):
             with waveLock:
                 waves[y].append(sinewave)
             time.sleep( 0.0001 ) # Yield to other processes to hopefully not lock the entire CPU
-        with doneLock:
-            done += 1
-        setRowCh(y, '#')
+
         # print(f"Worker {y} finished")
+
+    blockdata = []
+
+    for i in range(width):
+        blockdata.append(None)
+
+    x = 0
+
+    sinewave = np.sin(2 * np.pi * MAXFREQ * times)
+
+    rows, cols = stdscr.getmaxyx()
+
+    def asciiartChar(x, y, c):
+        with scrLock:
+            if x+3 < cols and y+3 < rows:
+                stdscr.addch(y+3, x+3, c)
+                stdscr.refresh()
+                pass
+
+    for x in range(height):
+        for y in range(width):
+            asciiartChar(x, y, '.')
+
+    def calcCol(num, tq):
+        block = np.copy(sinewave)
+        for row in range(VERT_RES):
+            frequency = freqs[VERT_RES - row - 1]
+            amplitude = (img_data[row][num] / 255) # 255 is the max pixel value
+            # ASCII art version
+            if ASCIIART:
+                c = str(amplitude)
+                asciiartChar(num, row, c[2])
+            # end ASCII art version
+            thiswave = amplitude * np.sin(2 * np.pi * frequency * times)
+            # block += thiswave
+        blockdata[num] = block
 
     alldone = 0
     startnum = 0
@@ -141,7 +174,16 @@ def main(stdscr):
         for y in range(max):
         # for y in range(height):
             try:
-                t1 = threading.Thread(target=target, args=(y,(y == WORKER_THREADS - 1)))
+                def threadFunc(num, arg2):
+                    setRowCh(num, '+')
+                    global done
+                    global alldone
+                    target(num, arg2)
+                    with doneLock:
+                        done += 1
+                        alldone += 1
+                    setRowCh(num, '#')
+                t1 = threading.Thread(target=threadFunc, args=(y,(y == WORKER_THREADS - 1)))
                 t1.start()
             except:
                 print("Error: unable to start thread")
@@ -149,38 +191,22 @@ def main(stdscr):
                 addstr(0, 0, f"{text} ...        ")
                 while done < WORKER_THREADS:
                     pass
-                alldone += done;
                 done = 0;
                 addstr(0, 0, "Starting ...        ")
 
-        while alldone < height:
+        addstr(15,0, str(alldone) + " " + str(max))
+        while alldone < max:
             time.sleep(0.5)
 
-    useThreads(height, calcRow, "Drawing")
-
-    # frequency = MAXFREQ
-    sinewave = np.sin(2 * np.pi * MAXFREQ * times)
-
-    blockdata = []
-
-    x = 0
-
-    def mixing(blocknum, no):
-        setRowCh(y, '+')
-        global done
-        block = np.copy(sinewave)
-        for row in range(VERT_RES):
-            block += waves[row][blocknum]
-        blockdata.append(block)
-        with doneLock:
-            done += 1
-        setRowCh(y, '#')
-
-    useThreads(width, mixing, "Mixing")
+    # useThreads(height, calcRow, "Drawing")
+    useThreads(width, calcCol, "Rendering")
 
     addstr(0, 0, "Combining ...        ")
+    data = []
     for blocknum in range(width):
         data = np.append(data, blockdata[blocknum])
+
+    addstr(16,0, str(len(data)))
 
     addstr(0, 0, "Showing ...        ")
     # Plot only the left channel
@@ -194,6 +220,7 @@ def main(stdscr):
     # Output img with window name as 'image'
     cv2.imshow('image', cv2.resize(gray2, (512, 512)))
 
+    # QT_QPA_PLATFORM=wayland
     plt.show()
 
     # Maintain output window utill
