@@ -2,6 +2,8 @@ from math import *
 
 print("please let me go to bed")
 
+b = (0.581, sqrt(2), 1.932)
+
 def getNum(text):
     return float(input(text + ": "))
 
@@ -12,11 +14,14 @@ def calcLP(b, fct, desc, printer=False):
     c = 1 # F
     w0 = 1
 
+    # Convert to rad/sec
     wct = fct * 2 * pi
 
+    # Calculate R1 and R2
     r1 = ((1/b) + sqrt(((1/b) ** 2) + 4)) / 2
     r2 = 1 / r1
 
+    # Maybe print results
     if printer:
         print(f"R1: {r1:.3g}\tR2: {r2:.3g}")
 
@@ -72,13 +77,58 @@ def calcBP(minf, maxf, desc, printer=False):
     # Return the 3 resistors and the capacitor value
     return (r1p, r2p, r3p, cp)
 
+# b from equation, wct is target frequency in rad/s, desc is the capacitance
+def calcHP(b, fct, desc, printer=False):
+    # Prototype values
+    wc = 1 # rad/sc
+    c = 1 # F
+    w0 = 1
+
+    # Convert to rad/sec
+    wct = fct * 2 * pi
+
+    # Calculate R1 and R2
+    r1 = b / 2
+    r2 = 2 / b
+
+    # Maybe print
+    if printer:
+        print(f"R1: {r1:.3g}\tR2: {r2:.3g}")
+
+    # Calculate scale factors
+    kf = wct / w0
+    km = c / (desc * kf)
+    if printer:
+        print(f"km: {km:.3g}\tkf: {kf:.3g}")
+
+    # Calculating the scaled values
+    r1p = km * r1
+    r2p = km * r2
+    cp = c / (km * kf)
+
+    # Returns the scaled R1, R2, C
+    return (r1p, r2p, cp)
+
 def doThingy():
     intxt = ""
     while len(intxt) <= 0 or intxt[0] not in "hHlLbB":
         intxt = input("Filter type (H|L|B): ")
 
     if intxt[0] in "hH":
-        print("No, you don't want to do high pass")
+        # High pass sallen-key circuit
+        # Assummes r1=r2
+
+        # Ask the user for the frequencies they want
+        maxf = getNum("Max freq [hz]")
+
+        # Ask the user what capacitor they want to use
+        desc = getNum("Cap value")
+
+        # Calculate the 3 stages
+        for bv in b:
+            r1, r2, c = calcHP(bv, maxf, desc)
+            print(f"Your values are r1':{r1:.3g}\tr2'{r2:.3g}\tc'{c:.3g}")
+
     elif intxt[0] in "bB":
         # Sallen key bandpass
 
@@ -97,7 +147,6 @@ def doThingy():
     elif intxt[0] in "lL":
         # Low pass sallen-key circuit
         # Assummes r1=r2
-        b = (0.581, sqrt(2), 1.932)
 
         # Ask the user for the frequencies they want
         maxf = getNum("Max freq [hz]")
@@ -115,3 +164,26 @@ def doThingy():
 
 while True:
     doThingy();
+
+RMCF1206FT20R0CT-ND
+RMCF1206FT931RCT-ND
+RMCF1206FT1K82CT-ND
+RMCF1206FT768RCT-ND
+RMCF1206FT1K47CT-ND
+RMCF1206FT365RCT-ND
+RMCF1206FT93R1CT-ND
+RMCF1206FT110RCT-ND
+RMCF1206FT117RCT-ND
+RMCF1206FT1K87CT-ND
+RMCF1206FT576RCT-ND
+RMCF1206FT3K65CT-ND
+RMCF1206FT73R2CT-ND
+RMCF1206FT1K54CT-ND
+RMCF1206FT1K13CT-ND
+RMCF1206FT562RCT-ND
+RMCF1206FT22R6CT-ND
+RMCF1206FT44R3CT-ND
+RMCF1206FT1K02CT-ND
+RMCF1206FT619RCT-ND
+RMCF1206FT33R6CT-ND
+RMCF1206FT30R2CT-ND
