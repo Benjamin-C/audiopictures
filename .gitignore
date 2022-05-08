@@ -1,2 +1,7 @@
 kicad/circuits/circuits-backups
 kicad/*/*-backups*
+__pycache__/
+
+*.png
+*.wav
+!tux.png
