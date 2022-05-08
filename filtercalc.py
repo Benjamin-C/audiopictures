@@ -91,6 +91,19 @@ def calcHP(b, fct, desc, printer=False):
     r1 = b / 2
     r2 = 2 / b
 
+    '''
+    b = 2 / r2 * c # origional formula
+    b = 2 / r2 # c=1
+    r2 * b = 2 # Move r2 over
+    r2 = b / 2
+
+    wn ** 2 = 1 / r1 * r2 * (c ** 2) # origional formula
+    1 = 1 / (r1 * r2 * 1) # wn=1 and c=1
+    r1 * r2 = 1 # Move r1*r2 over
+    r2 = 1/r1
+    '''
+
+
     # Maybe print
     if printer:
         print(f"R1: {r1:.3g}\tR2: {r2:.3g}")
@@ -109,6 +122,10 @@ def calcHP(b, fct, desc, printer=False):
     # Returns the scaled R1, R2, C
     return (r1p, r2p, cp)
 
+def testHP(r1, r2, c):
+     return 1 / (2 * pi * sqrt(r1 * r2 * (c ** 2)))
+
+
 def doThingy():
     intxt = ""
     while len(intxt) <= 0 or intxt[0] not in "hHlLbB":
@@ -119,7 +136,7 @@ def doThingy():
         # Assummes r1=r2
 
         # Ask the user for the frequencies they want
-        maxf = getNum("Max freq [hz]")
+        maxf = getNum("Min freq [hz]")
 
         # Ask the user what capacitor they want to use
         desc = getNum("Cap value")
