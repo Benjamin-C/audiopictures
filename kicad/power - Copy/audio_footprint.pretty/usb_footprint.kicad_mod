@@ -14,14 +14,32 @@
     (effects (font (size 1 1) (thickness 0.15)))
     (tstamp 4446920c-e28b-4c1e-92d9-8d96d4b65364)
   )
-  (pad "A5" smd roundrect (at -0.68 0 90) (size 1.2 0.7) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp 3bb72b68-6823-4dac-a917-afff8b5d727c))
-  (pad "A9" smd roundrect (at 1.34 0 90) (size 1.2 0.76) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp cd411570-24a7-42e2-bf00-0752d5492fba))
-  (pad "A12" smd roundrect (at 2.57 0 90) (size 1.2 0.8) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp 8a66f837-ee3a-465d-87a1-014985b045a5))
-  (pad "B5" smd roundrect (at 0.32 0 90) (size 1.2 0.7) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp 69c2f599-e0f2-4732-a8f9-8e5b93301930))
-  (pad "B9" smd roundrect (at -1.7 0 90) (size 1.2 0.76) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp 974ed94b-6e4c-4b7e-bb35-25881aa4906a))
-  (pad "B12" smd roundrect (at -2.93 0 90) (size 1.2 0.8) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp 12ffd716-585e-4374-883a-80c342f03238))
-  (pad "S1" thru_hole oval (at -4.64 0 90) (size 1.7 1.1) (drill oval 1.2 0.6) (layers *.Cu *.Mask) (tstamp 1bbcdf40-f99c-46f6-ae1c-d9f93ca37c65))
-  (pad "S1" thru_hole oval (at -4.64 3.8 90) (size 1.7 1.1) (drill oval 1.2 0.6) (layers *.Cu *.Mask) (tstamp 5fb4852a-5627-47c1-88e1-145be7aa8321))
-  (pad "S1" thru_hole oval (at 4 0 90) (size 1.7 1.1) (drill oval 1.2 0.6) (layers *.Cu *.Mask) (tstamp 6c8e2b8f-05f4-403e-b70e-7d09a9c9ea2d))
-  (pad "S1" thru_hole oval (at 4 3.8 90) (size 1.7 1.1) (drill oval 1.2 0.6) (layers *.Cu *.Mask) (tstamp 6e3678a9-0417-42a4-bc8d-0d6e1ca0de93))
+  (pad "A5" smd roundrect (at -0.82 0 90) (size 1.2 0.7) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp 3bb72b68-6823-4dac-a917-afff8b5d727c))
+  (pad "A9" smd roundrect (at 1.2 0 90) (size 1.2 0.76) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp cd411570-24a7-42e2-bf00-0752d5492fba))
+  (pad "A12" smd roundrect (at 2.43 0 90) (size 1.2 0.8) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp 8a66f837-ee3a-465d-87a1-014985b045a5))
+  (pad "B5" smd roundrect (at 0.18 0 90) (size 1.2 0.7) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp 69c2f599-e0f2-4732-a8f9-8e5b93301930))
+  (pad "B9" smd roundrect (at -1.84 0 90) (size 1.2 0.76) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp 974ed94b-6e4c-4b7e-bb35-25881aa4906a))
+  (pad "B12" smd roundrect (at -3.07 0 90) (size 1.2 0.8) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (tstamp 12ffd716-585e-4374-883a-80c342f03238))
+  (pad "S1" thru_hole circle (at -4.64 0 90) (size 1.7 1.7) (drill 1.2) (layers *.Cu *.Mask) (tstamp 1bbcdf40-f99c-46f6-ae1c-d9f93ca37c65))
+  (pad "S1" thru_hole circle (at -4.64 3.8 90) (size 1.7 1.7) (drill 1.2) (layers *.Cu *.Mask) (tstamp 5fb4852a-5627-47c1-88e1-145be7aa8321))
+  (pad "S1" thru_hole circle (at 4 0 90) (size 1.7 1.7) (drill 1.2) (layers *.Cu *.Mask) (tstamp 6c8e2b8f-05f4-403e-b70e-7d09a9c9ea2d))
+  (pad "S1" thru_hole circle (at 4 3.8 90) (size 1.7 1.7) (drill 1.2) (layers *.Cu *.Mask) (tstamp 6e3678a9-0417-42a4-bc8d-0d6e1ca0de93))
+  (group "" (id 0351df45-d042-41d4-ba35-88092c7be2fc)
+    (members
+      1bbcdf40-f99c-46f6-ae1c-d9f93ca37c65
+      5fb4852a-5627-47c1-88e1-145be7aa8321
+      6c8e2b8f-05f4-403e-b70e-7d09a9c9ea2d
+      6e3678a9-0417-42a4-bc8d-0d6e1ca0de93
+    )
+  )
+  (group "" (id 87d7448e-e139-4209-ae0b-372f805267da)
+    (members
+      12ffd716-585e-4374-883a-80c342f03238
+      3bb72b68-6823-4dac-a917-afff8b5d727c
+      69c2f599-e0f2-4732-a8f9-8e5b93301930
+      8a66f837-ee3a-465d-87a1-014985b045a5
+      974ed94b-6e4c-4b7e-bb35-25881aa4906a
+      cd411570-24a7-42e2-bf00-0752d5492fba
+    )
+  )
 )
