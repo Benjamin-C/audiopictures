@@ -24,7 +24,15 @@
   (pad "S1" thru_hole circle (at -4.64 3.8 90) (size 1.7 1.7) (drill 1.2) (layers *.Cu *.Mask) (tstamp 5fb4852a-5627-47c1-88e1-145be7aa8321))
   (pad "S1" thru_hole circle (at 4 0 90) (size 1.7 1.7) (drill 1.2) (layers *.Cu *.Mask) (tstamp 6c8e2b8f-05f4-403e-b70e-7d09a9c9ea2d))
   (pad "S1" thru_hole circle (at 4 3.8 90) (size 1.7 1.7) (drill 1.2) (layers *.Cu *.Mask) (tstamp 6e3678a9-0417-42a4-bc8d-0d6e1ca0de93))
-  (group "" (id 644a75f5-03f8-4ee1-9ee4-dfd5b301d390)
+  (group "" (id 0351df45-d042-41d4-ba35-88092c7be2fc)
+    (members
+      1bbcdf40-f99c-46f6-ae1c-d9f93ca37c65
+      5fb4852a-5627-47c1-88e1-145be7aa8321
+      6c8e2b8f-05f4-403e-b70e-7d09a9c9ea2d
+      6e3678a9-0417-42a4-bc8d-0d6e1ca0de93
+    )
+  )
+  (group "" (id 87d7448e-e139-4209-ae0b-372f805267da)
     (members
       12ffd716-585e-4374-883a-80c342f03238
       3bb72b68-6823-4dac-a917-afff8b5d727c
@@ -32,14 +40,6 @@
       8a66f837-ee3a-465d-87a1-014985b045a5
       974ed94b-6e4c-4b7e-bb35-25881aa4906a
       cd411570-24a7-42e2-bf00-0752d5492fba
-    )
-  )
-  (group "" (id f41c766e-9c5a-4f5b-b48f-d04164bcae91)
-    (members
-      1bbcdf40-f99c-46f6-ae1c-d9f93ca37c65
-      5fb4852a-5627-47c1-88e1-145be7aa8321
-      6c8e2b8f-05f4-403e-b70e-7d09a9c9ea2d
-      6e3678a9-0417-42a4-bc8d-0d6e1ca0de93
     )
   )
 )
